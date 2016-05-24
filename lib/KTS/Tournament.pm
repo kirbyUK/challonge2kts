@@ -6,7 +6,7 @@ use KTS::Tournament::TournPlayer::Player;
 sub new
 {
 	my $class = shift;
-	my $t = {
+	bless {
 		"name" => "",
 		"id" => "",
 		"tournament_style_code" => "01",
@@ -23,8 +23,7 @@ sub new
 		"finalized" => "False",
 		"tournament_players" => [ ],
 		"matches" => [ ],
-	};
-	bless $t, $class;
+	}, $class;
 }
 
 1;

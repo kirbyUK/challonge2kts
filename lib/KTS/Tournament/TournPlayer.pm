@@ -4,7 +4,7 @@ use KTS::Tournament::TournPlayer::Player;
 sub new
 {
 	my $class = shift;
-	my $t = {
+	bless {
 		"player" => "",
 		"drop_round" => 0,
 		"rank" => 0,
@@ -15,8 +15,7 @@ sub new
 		"drop_reason" => "Active",
 		"assigned_seat" => -1,
 		"notes" => "",
-	};
-	bless $t, $class;
+	}, $class;
 }
 
 1;
