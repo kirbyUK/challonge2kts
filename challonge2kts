@@ -1,0 +1,42 @@
+#!/usr/bin/perl -w -Ilib
+use Carp;
+use Getopt::Long;
+use WWW::Challonge;
+use XML::Simple;
+use strict;
+
+sub main;
+sub usage;
+
+# Process command-line arguments:
+my $help = ""; # Print usage (true / false)
+my $auth = ""; # Challonge API key
+my $turl = ""; # Challonge tournament URL
+my $outf = ""; # Output filename
+my $loct = ""; # Locations.XML file path
+my $tid =  ""; # Tournament ID
+GetOptions(
+	"help" => \$help,
+	"api-key=s" => \$auth,
+	"tournament=s" => \$turl,
+	"output=s" => \$outf,
+	"locations=s" => \$loct,
+	"id=s" => \$tid
+) or usage;
+
+sub main
+{
+	# Check the Challonge API key and URL are supplied:
+	die "Must supply a Challonge API key with -a\n" if($auth eq "");
+	die "Must supply a Challonge tournament URL with -t\n" if($turl eq "");
+
+	# Create Challonge connection and get tournament:
+	my $c = WWW::Challonge->new($auth);
+	my $t = $c->tournament($turl);
+}
+
+sub usage
+{
+}
+
+main;
