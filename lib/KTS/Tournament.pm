@@ -1,4 +1,4 @@
-package KTS::Tournament
+package KTS::Tournament;
 use KTS::Tournament::TournMatch;
 use KTS::Tournament::TournPlayer;
 use KTS::Tournament::TournPlayer::Player;
