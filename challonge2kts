@@ -3,6 +3,7 @@ use Carp;
 use Getopt::Long;
 use WWW::Challonge;
 use XML::Simple;
+use Data::Dumper;
 use strict;
 
 use KTS::Tournament;
@@ -31,16 +32,20 @@ GetOptions(
 	"id=s" => \$tid
 ) or usage;
 
-# Get the players and return them as a list of Player objects:
+# Get the players and return them mapped by their Challonge ID
 sub players
 {
 	my ($t, $players_xml) = @_;
 	my $challonge_players = $t->participants;
 
+	# The first temporary COSSY ID. They then increment, so the next one is
+	# 9999000001, etc.
+	my $temp = 9999000000;
+
 	# If supplied with the Players.XML file, attempt to make an educated guess
 	# as to players and thus their IDs. Otherwise, will require manual input:
 	# TODO: Implement this:
-	my @players;
+	my %players;
 	for my $player (@{$challonge_players})
 	{
 		# Get the player's name (must be First Last):
@@ -56,18 +61,21 @@ sub players
 		do
 		{
 			print "COSSY ID: ";
-			chomp($cossy = <STDIN>); 
+			chomp($cossy = <STDIN>);
+			# If a temp ID is used, set that:
+			$cossy = $temp++ if($cossy eq "temp");
 		} while($cossy !~ /^\d{10}$/);
 		print "\n";
 
 		# Make a player object from this:
-		push @players, KTS::Tournament::TournPlayer::Player->new(
+		$players{$player->attributes->{"id"}} = 
+			KTS::Tournament::TournPlayer::Player->new(
 			"FirstName" => (split(" ", $name))[0],
 			"LastName" => (split(" ", $name))[1],
 			"ID" => $cossy,
 		);
 	}
-	return \@players;
+	return \%players;
 }
 
 sub main
@@ -79,6 +87,8 @@ sub main
 	# Create Challonge connection and get tournament:
 	my $c = WWW::Challonge->new($auth);
 	my $t = $c->tournament($turl);
+	my $p = players($t);
+	print Dumper $p;
 }
 
 sub usage

@@ -14,7 +14,7 @@ sub new
 	# Add any constant fields:
 	$args{"TeamPosition"} = 0;
 
-	bless \$args, $class;
+	bless \%args, $class;
 }
 
 1;
