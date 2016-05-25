@@ -5,6 +5,11 @@ use WWW::Challonge;
 use XML::Simple;
 use strict;
 
+use KTS::Tournament;
+use KTS::Tournament::TournMatch;
+use KTS::Tournament::TournPlayer;
+use KTS::Tournament::TournPlayer::Player;
+
 sub main;
 sub usage;
 
@@ -14,6 +19,7 @@ my $auth = ""; # Challonge API key
 my $turl = ""; # Challonge tournament URL
 my $outf = ""; # Output filename
 my $loct = ""; # Locations.XML file path
+my $play = ""; # Players.XML file path
 my $tid =  ""; # Tournament ID
 GetOptions(
 	"help" => \$help,
@@ -21,8 +27,48 @@ GetOptions(
 	"tournament=s" => \$turl,
 	"output=s" => \$outf,
 	"locations=s" => \$loct,
+	"players=s" => \$play,
 	"id=s" => \$tid
 ) or usage;
+
+# Get the players and return them as a list of Player objects:
+sub players
+{
+	my ($t, $players_xml) = @_;
+	my $challonge_players = $t->participants;
+
+	# If supplied with the Players.XML file, attempt to make an educated guess
+	# as to players and thus their IDs. Otherwise, will require manual input:
+	# TODO: Implement this:
+	my @players;
+	for my $player (@{$challonge_players})
+	{
+		# Get the player's name (must be First Last):
+		my $name = "";
+		do
+		{
+			print "Full name of '", $player->attributes->{"name"}, "': ";
+			chomp($name = <STDIN>);
+		} while($name !~ /^[A-Z][a-z]* [A-Z][a-z]*$/);
+
+		# Get the player's COSSY ID (must be a ten-digit number):
+		my $cossy = "";
+		do
+		{
+			print "COSSY ID: ";
+			chomp($cossy = <STDIN>); 
+		} while($cossy !~ /^\d{10}$/);
+		print "\n";
+
+		# Make a player object from this:
+		push @players, KTS::Tournament::TournPlayer::Player->new(
+			"FirstName" => (split(" ", $name))[0],
+			"LastName" => (split(" ", $name))[1],
+			"ID" => $cossy,
+		);
+	}
+	return \@players;
+}
 
 sub main
 {
