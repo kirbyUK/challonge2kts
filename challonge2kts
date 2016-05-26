@@ -102,6 +102,33 @@ sub matches
 	return \%matches;
 }
 
+# Transforms players into a list of TournPlayers:
+sub tournplayers
+{
+	my ($t, $players) = @_;
+
+	# Calculate number of wins for each player:
+	my $participants = $t->participants;
+	my $matches = $t->matches;
+	my %wins;
+	for my $match (@{$matches})
+	{
+		$wins{$match->attributes->{"winner_id"}}++;
+	}
+
+	my %tournplayers;
+	for my $player (@{$participants})
+	{
+		$tournplayers{$player->attributes->{"id"}} =
+			KTS::Tournament::TournPlayer->new(
+			"Player" => $players->{$player->attributes->{"id"}},
+			"Rank" => $player->attributes->{"final_rank"},
+			"Wins" => $wins{$player->attributes->{"id"}} * 3 // 0,
+		);
+	}
+	return \%tournplayers;
+}
+
 sub main
 {
 	# Check the Challonge API key and URL are supplied:
@@ -113,7 +140,8 @@ sub main
 	my $t = $c->tournament($turl);
 	my $p = players($t);
 	my $m = matches($t, $p);
-	print Dumper $m;
+	my $tp = tournplayers($t, $p);
+	print Dumper $tp;
 }
 
 sub usage
