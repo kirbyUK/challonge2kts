@@ -17,4 +17,10 @@ sub new
 	bless \%args, $class;
 }
 
+sub id
+{
+	my $self = shift;
+	return $self->{"ID"};
+}
+
 1;

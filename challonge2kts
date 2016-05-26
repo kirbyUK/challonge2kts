@@ -3,8 +3,8 @@ use Carp;
 use Getopt::Long;
 use WWW::Challonge;
 use XML::Simple;
-use Data::Dumper;
 use strict;
+use Data::Dumper;
 
 use KTS::Tournament;
 use KTS::Tournament::TournMatch;
@@ -78,6 +78,30 @@ sub players
 	return \%players;
 }
 
+# Transform the matches to TournMatches:
+sub matches
+{
+	my ($t, $players) = @_;
+	my $challonge_matches = $t->matches;
+
+	# TODO: Table number and tie rounds
+
+	my %matches;
+	for my $match (@{$challonge_matches})
+	{
+		$matches{$match->attributes->{"id"}} =
+			KTS::Tournament::TournMatch->new(
+			"Players" => [
+				$players->{$match->attributes->{"player1_id"}}->id,
+				$players->{$match->attributes->{"player2_id"}}->id
+			],
+			"Round" => $match->attributes->{"round"},
+			"Winner" => $players->{$match->attributes->{"winner_id"}}->id,
+		);
+	}
+	return \%matches;
+}
+
 sub main
 {
 	# Check the Challonge API key and URL are supplied:
@@ -88,7 +112,8 @@ sub main
 	my $c = WWW::Challonge->new($auth);
 	my $t = $c->tournament($turl);
 	my $p = players($t);
-	print Dumper $p;
+	my $m = matches($t, $p);
+	print Dumper $m;
 }
 
 sub usage
