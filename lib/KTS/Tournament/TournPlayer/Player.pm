@@ -5,14 +5,14 @@ sub new
 	my $class = shift;
 	my %args = @_;
 
+	# Add any constant fields:
+	$args{"TeamPosition"} = 0;
+
 	# Check all required fields are present:
-	for my $member (qw/ID FirstName LastName/)
+	for my $member (qw/ID FirstName LastName TeamPosition/)
 	{
 		die "Missing member '", $member, "'\n" if(! defined($args{"$member"}));
 	}
-
-	# Add any constant fields:
-	$args{"TeamPosition"} = 0;
 
 	bless \%args, $class;
 }
