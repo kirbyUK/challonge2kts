@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w -Ilib
 use Carp;
 use Getopt::Long;
+use DateTime::Format::ISO8601;
 use WWW::Challonge;
 use XML::Simple;
 use strict;
@@ -123,10 +124,37 @@ sub tournplayers
 			KTS::Tournament::TournPlayer->new(
 			"Player" => $players->{$player->attributes->{"id"}},
 			"Rank" => $player->attributes->{"final_rank"},
-			"Wins" => $wins{$player->attributes->{"id"}} * 3 // 0,
+			"Wins" => ($wins{$player->attributes->{"id"}} // 0) * 3,
 		);
 	}
 	return \%tournplayers;
+}
+
+# Pulls together all tournament data into a KTS::Tournament object:
+sub tournament
+{
+	my ($t, $tournplayers, $tournmatches) = @_;
+
+	# Get the time and date:
+	my $dt = DateTime::Format::ISO8601->parse_datetime(
+		$t->attributes->{"started_at"}
+	);
+
+	return KTS::Tournament->new(
+		"Name" => $t->attributes->{"name"},
+		"ID" => $tid || "X99-000001",
+		"Date" => $dt->date,
+		"Time" => $dt->hour . ":" . $dt->minute,
+		"CurrentRound" => $t->attributes->{"swiss_rounds"},
+		"TournamentPlayers" => [
+			sort { $a->id <=> $b->id }
+			values %{$tournplayers}
+		],
+		"Matches" => [
+			sort { $a->round <=> $b->round or $a->table <=> $b->table }
+			values %{$tournmatches}
+		],
+	);
 }
 
 sub main
@@ -141,7 +169,8 @@ sub main
 	my $p = players($t);
 	my $m = matches($t, $p);
 	my $tp = tournplayers($t, $p);
-	print Dumper $tp;
+	my $tourn = tournament($t, $tp, $m);
+	warn Dumper $tourn;
 }
 
 sub usage

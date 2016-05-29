@@ -19,4 +19,16 @@ sub new
 	bless \%args, $class;
 }
 
+sub round
+{
+	my $self = shift;
+	return $self->{"Round"};
+}
+
+sub table
+{
+	my $self = shift;
+	return $self->{"Table"};
+}
+
 1;
