@@ -32,4 +32,22 @@ sub id
 	return $self->{"Player"}->id;
 }
 
+sub toXML
+{
+	my ($self, $writer) = @_;
+
+	$writer->startTag("TournPlayer");
+	$writer = $self->{"Player"}->toXML($writer);
+	for my $member (qw/
+		DropRound Rank PlayoffPoints Wins Points OpenDueling DropReason
+		AssignedSeat
+	/)
+	{
+		$writer->dataElement($member, $self->{$member});
+	}
+	$writer->emptyTag("Notes");
+	$writer->endTag;
+	return $writer;
+}
+
 1;

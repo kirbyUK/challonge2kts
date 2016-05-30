@@ -1,5 +1,4 @@
 package KTS::Tournament::TournPlayer::Player;
-use XML::Writer;
 
 sub new
 {
@@ -26,13 +25,7 @@ sub id
 
 sub toXML
 {
-	my $self = shift;
-	my $writer = new XML::Writer(
-		ENCODING => "utf-8",
-		OUTPUT => "self",
-		DATA_MODE => "true",
-		DATA_INDENT => 2
-	);
+	my ($self, $writer) = @_;
 
 	$writer->startTag("Player");
 	for my $member (qw/ID FirstName LastName TeamPosition/)
@@ -40,7 +33,6 @@ sub toXML
 		$writer->dataElement($member, $self->{$member});
 	}
 	$writer->endTag;
-	$writer->end;
 	return $writer;
 }
 

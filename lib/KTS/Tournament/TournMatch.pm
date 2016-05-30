@@ -34,13 +34,7 @@ sub table
 
 sub toXML
 {
-	my $self = shift;
-	my $writer = new XML::Writer(
-		ENCODING => "utf-8",
-		OUTPUT => "self",
-		DATA_MODE => "true",
-		DATA_INDENT => 2
-	);
+	my ($self, $writer) = @_;
 
 	$writer->startTag("TournMatch");
 	for my $id (sort @{$self->{"Players"}})
@@ -52,7 +46,6 @@ sub toXML
 		$writer->dataElement($member, $self->{$member});
 	}
 	$writer->endTag;
-	$writer->end;
 	return $writer;
 }
 
