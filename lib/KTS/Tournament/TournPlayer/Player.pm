@@ -28,6 +28,7 @@ sub toXML
 {
 	my $self = shift;
 	my $writer = new XML::Writer(
+		ENCODING => "utf-8",
 		OUTPUT => "self",
 		DATA_MODE => "true",
 		DATA_INDENT => 2
