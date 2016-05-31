@@ -33,4 +33,46 @@ sub new
 	bless \%args, $class;
 }
 
+sub name
+{
+	my $self = shift;
+	return $self->{"Name"};
+}
+
+sub id
+{
+	my $self = shift;
+	return $self->{"ID"};
+}
+
+sub toXML
+{
+	my ($self, $writer) = @_;
+
+	$writer->startTag("Tournament");
+	for my $member (qw/
+		Name ID TournamentStyleCode StructureCode EventTypeCode PlayerStructure
+		ReferenceDateTime Date Time CurrentRound TableOffset PlayoffRound
+		SoftwareVersion Finalized
+	/)
+	{
+		$writer->dataElement($member, $self->{$member});
+	}
+	$writer->emptyTag("PenaltyList");
+	$writer->startTag("TournamentPlayers");
+	for my $player (@{$self->{"TournamentPlayers"}})
+	{
+		$writer = $player->toXML($writer);
+	}
+	$writer->endTag;
+	$writer->startTag("Matches");
+	for my $match (@{$self->{"Matches"}})
+	{
+		$writer = $match->toXML($writer);
+	}
+	$writer->endTag;
+	$writer->endTag;
+	return $writer;
+}
+
 1;

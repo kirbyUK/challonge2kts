@@ -1,5 +1,4 @@
 package KTS::Tournament::TournMatch;
-use XML::Writer;
 
 sub new
 {

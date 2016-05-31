@@ -1,11 +1,10 @@
 #!/usr/bin/perl -w -Ilib
+use strict;
 use Carp;
 use Getopt::Long;
 use DateTime::Format::ISO8601;
 use WWW::Challonge;
-use XML::Simple;
-use strict;
-use Data::Dumper;
+use XML::Writer;
 
 use KTS::Tournament;
 use KTS::Tournament::TournMatch;
@@ -170,7 +169,23 @@ sub main
 	my $m = matches($t, $p);
 	my $tp = tournplayers($t, $p);
 	my $tourn = tournament($t, $tp, $m);
-	warn Dumper $tourn;
+
+	# Create the XML document:
+	my $doc = new XML::Writer(
+		ENCODING => "utf-8",
+		OUTPUT => "self",
+		DATA_MODE => "true",
+		DATA_INDENT => 4
+	);
+	$doc->xmlDecl;
+	$doc = $tourn->toXML($doc);
+	$doc->end;
+
+	# Write the file:
+	my $filename = $outf || $tourn->name . " (ID " . $tourn->id . ").Tournament";
+	open my $fh, '>', $filename or die "Cannot open '$filename': $!\n";
+	print $fh $doc->to_string;
+	close $fh;
 }
 
 sub usage
