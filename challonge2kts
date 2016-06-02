@@ -78,30 +78,6 @@ sub players
 	return \%players;
 }
 
-# Transform the matches to TournMatches:
-sub matches
-{
-	my ($t, $players) = @_;
-	my $challonge_matches = $t->matches;
-
-	# TODO: Table number and tie rounds
-
-	my %matches;
-	for my $match (@{$challonge_matches})
-	{
-		$matches{$match->attributes->{"id"}} =
-			KTS::Tournament::TournMatch->new(
-			"Players" => [
-				$players->{$match->attributes->{"player1_id"}}->id,
-				$players->{$match->attributes->{"player2_id"}}->id
-			],
-			"Round" => $match->attributes->{"round"},
-			"Winner" => $players->{$match->attributes->{"winner_id"}}->id,
-		);
-	}
-	return \%matches;
-}
-
 # Transforms players into a list of TournPlayers:
 sub tournplayers
 {
@@ -116,17 +92,95 @@ sub tournplayers
 		$wins{$match->attributes->{"winner_id"}}++;
 	}
 
-	my %tournplayers;
+	my @tournplayers;
 	for my $player (@{$participants})
 	{
-		$tournplayers{$player->attributes->{"id"}} =
-			KTS::Tournament::TournPlayer->new(
+		push @tournplayers, KTS::Tournament::TournPlayer->new(
 			"Player" => $players->{$player->attributes->{"id"}},
 			"Rank" => $player->attributes->{"final_rank"},
 			"Wins" => ($wins{$player->attributes->{"id"}} // 0) * 3,
 		);
 	}
-	return \%tournplayers;
+	return \@tournplayers;
+}
+
+# Take an arrayref of WWW::Challonge::Match objects and split them by round
+# number:
+sub matches_by_round
+{
+	my $challonge_matches = shift;
+	my $matches_by_round = { };
+	for my $match (@{$challonge_matches})
+	{
+		push @{$matches_by_round->{$match->attributes->{"round"}}}, $match;
+	}
+	return $matches_by_round;
+}
+
+# Work out the bye matches for each round and make TournMatch objects of them:
+sub byes
+{
+	my ($challonge_matches, $players) = @_;
+
+	my %matches_by_round = %{matches_by_round($challonge_matches)};
+
+	# Find the missing player for each round and make a new TournMatch for them:
+	my @byes;
+	for my $round (keys %matches_by_round)
+	{
+		# Get all the players that are in this round:
+		my @playing;
+		for my $match (@{$matches_by_round{$round}})
+		{
+			my $attr = $match->attributes;
+			push @playing, $attr->{"player1_id"};
+			push @playing, $attr->{"player2_id"};
+		}
+
+		# Calculate the difference between the players in the round and the list
+		# of all players (perlfaq4):
+		my %count;
+		my @diff;
+		my @players_c = keys %{$players};
+		for my $elem (@playing, @players_c) { $count{$elem}++; }
+		for my $elem (keys %count) { push @diff, $elem if($count{$elem} < 2); }
+
+		# Make a new round for each player with a bye:
+		for my $player (@diff)
+		{
+			push @byes, KTS::Tournament::TournMatch->new(
+				"Players" => [ $players->{$player}->id, "0" ],
+				"Round" => $round,
+				"Winner" => "0",
+			);
+		}
+	}
+	return \@byes;
+}
+
+# Transform the matches to TournMatches:
+sub matches
+{
+	my ($t, $players) = @_;
+	my $challonge_matches = $t->matches;
+
+	# TODO: Table number and tie rounds
+
+	my @matches;
+	for my $match (@{$challonge_matches})
+	{
+		push @matches, KTS::Tournament::TournMatch->new(
+			"Players" => [
+				$players->{$match->attributes->{"player1_id"}}->id,
+				$players->{$match->attributes->{"player2_id"}}->id
+			],
+			"Round" => $match->attributes->{"round"},
+			"Winner" => $players->{$match->attributes->{"winner_id"}}->id,
+		);
+	}
+	push @matches, @{byes($challonge_matches, $players)}
+		unless((keys %{$players}) % 2 == 0);
+	return \@matches;
 }
 
 # Pulls together all tournament data into a KTS::Tournament object:
@@ -147,11 +201,11 @@ sub tournament
 		"CurrentRound" => $t->attributes->{"swiss_rounds"},
 		"TournamentPlayers" => [
 			sort { $a->id <=> $b->id }
-			values %{$tournplayers}
+			@{$tournplayers}
 		],
 		"Matches" => [
 			sort { $a->round <=> $b->round or $a->table <=> $b->table }
-			values %{$tournmatches}
+			@{$tournmatches}
 		],
 	);
 }
