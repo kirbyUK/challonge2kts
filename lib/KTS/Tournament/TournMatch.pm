@@ -19,6 +19,12 @@ sub new
 	bless \%args, $class;
 }
 
+sub players
+{
+	my $self = shift;
+	return $self->{"Players"};
+}
+
 sub round
 {
 	my $self = shift;
@@ -29,6 +35,18 @@ sub table
 {
 	my $self = shift;
 	return $self->{"Table"};
+}
+
+sub winner
+{
+	my $self = shift;
+	return $self->{"Winner"};
+}
+
+sub set_table
+{
+	my ($self, $n) = @_;
+	$self->{"Table"} = $n;
 }
 
 sub toXML

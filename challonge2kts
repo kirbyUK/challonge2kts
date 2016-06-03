@@ -108,11 +108,23 @@ sub tournplayers
 # number:
 sub matches_by_round
 {
-	my $challonge_matches = shift;
+	my $matches = shift;
 	my $matches_by_round = { };
-	for my $match (@{$challonge_matches})
+	for my $match (@{$matches})
 	{
-		push @{$matches_by_round->{$match->attributes->{"round"}}}, $match;
+		# Different method calls are needed depending on the object type used:
+		if (ref $match eq "WWW::Challonge::Match")
+		{
+			push @{$matches_by_round->{$match->attributes->{"round"}}}, $match;
+		}
+		elsif (ref $match eq "KTS::Tournament::TournMatch")
+		{
+			push @{$matches_by_round->{$match->round}}, $match;
+		}
+		else
+		{
+			die "Unknown reference type '", ref $match, "'\n";
+		}
 	}
 	return $matches_by_round;
 }
@@ -158,13 +170,37 @@ sub byes
 	return \@byes;
 }
 
+# Work out the table numbers for each round:
+sub tables
+{
+	my $matches = shift;
+
+	my %matches_by_round = %{matches_by_round($matches)};
+
+	my %wins;
+	$wins{0} = -1000; # This should be small enough?
+	for my $round (keys %matches_by_round)
+	{
+		my $i = 1;
+		for my $match (sort {
+			(($wins{$b->players->[0]} // 0) + ($wins{$b->players->[1]} // 0))
+			<=>
+			(($wins{$a->players->[0]} // 0) + ($wins{$a->players->[1]} // 0))
+		} @{$matches_by_round{$round}})
+		{
+			$wins{$match->winner}++;
+			$match->set_table($i++);
+		}
+	}
+}
+
 # Transform the matches to TournMatches:
 sub matches
 {
 	my ($t, $players) = @_;
 	my $challonge_matches = $t->matches;
 
-	# TODO: Table number and tie rounds
+	# TODO: Tie rounds
 
 	my @matches;
 	for my $match (@{$challonge_matches})
@@ -180,6 +216,7 @@ sub matches
 	}
 	push @matches, @{byes($challonge_matches, $players)}
 		unless((keys %{$players}) % 2 == 0);
+	tables(\@matches);
 	return \@matches;
 }
 
