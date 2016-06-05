@@ -27,8 +27,8 @@ GetOptions(
 	"api-key=s" => \$auth,
 	"tournament=s" => \$turl,
 	"output=s" => \$outf,
-	"locations=s" => \$loct,
-	"players=s" => \$play,
+#	"locations=s" => \$loct,
+#	"players=s" => \$play,
 	"id=s" => \$tid
 ) or usage;
 
@@ -281,6 +281,17 @@ sub main
 
 sub usage
 {
+	print "usage: challonge2kts -a [api key] -t [tournament link] [OPTIONS]\n\n";
+	print "-a s or --api-key=s\tThe Challonge API key.\n",
+			"\t\t\tRequired, but does not have to be the\n",
+			"\t\t\taccount that owns the tournament\n\n";
+	print "-h or --help\t\tPrint this help message\n\n";
+	print "-i s or --id=s\t\tThe ID of the tournament. Defaults to\n",
+			"\t\t\tX99-000001\n\n";
+	print "-o s or --output=s\tThe output filename. Defaults to the\n",
+			"\t\t\tsame style as KTS\n\n";
+	print "-t s or --tournament=s\tThe URL of the Challonge tournament.\n",
+			"\t\t\tRequired.\n";
 }
 
-main;
+if ($help) { usage; } else { main };
