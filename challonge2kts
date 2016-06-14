@@ -251,11 +251,24 @@ sub main
 {
 	# Check the Challonge API key and URL are supplied:
 	die "Must supply a Challonge API key with -a\n" if($auth eq "");
-	die "Must supply a Challonge tournament URL with -t\n" if($turl eq "");
+	if($turl =~ m{^(?:(?:https?://)?challonge\.com/)?(\w+)$}i)
+	{
+		$turl = lc $1;
+	}
+	else
+	{
+		die "Must supply a Challonge tournament URL with -t\n" if($turl eq "");
+	}
 
 	# Create Challonge connection and get tournament:
-	my $c = WWW::Challonge->new($auth);
-	my $t = $c->tournament($turl);
+	my ($c, $t);
+	eval {
+		$c = WWW::Challonge->new($auth);
+		$t = $c->tournament($turl);
+	};
+	die "Invalid tournament URL '$turl'\n" if ($@);
+
+	# Transform Challonge tournament to a KTS::Tournament object:
 	my $p = players($t);
 	my $m = matches($t, $p);
 	my $tp = tournplayers($t, $p);
