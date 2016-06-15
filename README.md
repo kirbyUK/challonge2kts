@@ -55,7 +55,7 @@ location, penalties, etc.
 
 ## Tasks
 
-- [ ] Implement tie rounds
+- [x] Implement tie rounds
 - [ ] Web interface
 - [ ] Proper build / installation
 
