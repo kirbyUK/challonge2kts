@@ -6,9 +6,8 @@ sub new
 	my %args = @_;
 
 	# Add any constant fields:
-	$args{"Status"} = "Winner";
 	$args{"PlayoffMatch"} = "False";
-	$args{"Table"} = 0; #TODO: Generate this
+	$args{"Table"} = 0;
 
 	# Check all required fields are present:
 	for my $member (qw/Players Round Status Table Winner PlayoffMatch/)

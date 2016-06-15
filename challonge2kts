@@ -87,18 +87,30 @@ sub tournplayers
 	my $participants = $t->participants;
 	my $matches = $t->matches;
 	my %wins;
+	my %ties;
 	for my $match (@{$matches})
 	{
-		$wins{$match->attributes->{"winner_id"}}++;
+		my $attr = $match->attributes;
+		if (defined $attr->{"winner_id"})
+		{
+			$wins{$attr->{"winner_id"}}++;
+		}
+		elsif ($attr->{"state"} eq "complete")
+		{
+			$ties{$attr->{"player1_id"}}++;
+			$ties{$attr->{"player2_id"}}++;
+		}
 	}
 
 	my @tournplayers;
 	for my $player (@{$participants})
 	{
+		my $attr = $player->attributes;
 		push @tournplayers, KTS::Tournament::TournPlayer->new(
-			"Player" => $players->{$player->attributes->{"id"}},
-			"Rank" => $player->attributes->{"final_rank"},
-			"Wins" => ($wins{$player->attributes->{"id"}} // 0) * 3,
+			"Player" => $players->{$attr->{"id"}},
+			"Rank" => $attr->{"final_rank"},
+			"Wins" => ((($wins{$attr->{"id"}} // 0) * 3) +
+				($ties{$attr->{"id"}} // 0)),
 		);
 	}
 	return \@tournplayers;
@@ -178,7 +190,7 @@ sub tables
 	my %matches_by_round = %{matches_by_round($matches)};
 
 	my %wins;
-	$wins{0} = -1000; # This should be small enough?
+	$wins{"0"} = -1000; # This should be small enough?
 	for my $round (keys %matches_by_round)
 	{
 		my $i = 1;
@@ -200,18 +212,40 @@ sub matches
 	my ($t, $players) = @_;
 	my $challonge_matches = $t->matches;
 
-	# TODO: Tie rounds
-
 	my @matches;
 	for my $match (@{$challonge_matches})
 	{
+		my $attr = $match->attributes;
+		my $winner;
+		my $status;
+
+		# Check if the match is a draw:
+		if (defined $attr->{"winner_id"})
+		{
+			$winner = $attr->{"winner_id"};
+			$status = "Winner";
+		}
+		# If the Challonge state is "complete" and the winner is still undef,
+		# then it is a draw:
+		elsif ($attr->{"state"} eq "complete")
+		{
+			$winner = "0";
+			$status = "Draw";
+		}
+		# Otherwise the match is still open, so skip it for now:
+		else
+		{
+			next;
+		}
+
 		push @matches, KTS::Tournament::TournMatch->new(
 			"Players" => [
-				$players->{$match->attributes->{"player1_id"}}->id,
-				$players->{$match->attributes->{"player2_id"}}->id
+				$players->{$attr->{"player1_id"}}->id,
+				$players->{$attr->{"player2_id"}}->id
 			],
-			"Round" => $match->attributes->{"round"},
-			"Winner" => $players->{$match->attributes->{"winner_id"}}->id,
+			"Round" => $attr->{"round"},
+			"Status" => $status,
+			"Winner" => ($winner != 0) ? $players->{$winner}->id : 0,
 		);
 	}
 	push @matches, @{byes($challonge_matches, $players)}
