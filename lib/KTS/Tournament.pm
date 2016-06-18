@@ -59,6 +59,9 @@ sub toXML
 		$writer->dataElement($member, $self->{$member});
 	}
 	$writer->emptyTag("PenaltyList");
+	$writer->startTag("Staff");
+	$writer->emptyTag("XmlStaffArray);
+	$writer->endTag;
 	$writer->startTag("TournamentPlayers");
 	for my $player (@{$self->{"TournamentPlayers"}})
 	{
