@@ -60,7 +60,7 @@ sub toXML
 	}
 	$writer->emptyTag("PenaltyList");
 	$writer->startTag("Staff");
-	$writer->emptyTag("XmlStaffArray);
+	$writer->emptyTag("XmlStaffArray");
 	$writer->endTag;
 	$writer->startTag("TournamentPlayers");
 	for my $player (@{$self->{"TournamentPlayers"}})
