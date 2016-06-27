@@ -12,7 +12,8 @@ sub new
 	# Check all required fields are present:
 	for my $member (qw/Players Round Status Table Winner PlayoffMatch/)
 	{
-		die "Missing member '", $member, "'\n" if(! defined($args{"$member"}));
+		die "KTS::Tournament::TournMatch: Missing member '",
+			$member, "'\n" if(! defined($args{"$member"}));
 	}
 
 	bless \%args, $class;

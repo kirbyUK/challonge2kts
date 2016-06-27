@@ -175,7 +175,8 @@ sub byes
 			push @byes, KTS::Tournament::TournMatch->new(
 				"Players" => [ $players->{$player}->id, "0" ],
 				"Round" => $round,
-				"Winner" => "0",
+				"Winner" => $players->{$player}->id,
+				"Status" => "Winner",
 			);
 		}
 	}
