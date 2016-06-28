@@ -64,7 +64,7 @@ sub players
 			chomp($cossy = <STDIN>);
 			# If a temp ID is used, set that:
 			$cossy = $temp++ if($cossy eq "temp");
-		} while($cossy !~ /^\d{10}$/);
+		} while($cossy !~ /^0[0-4]\d{8}$/);
 		print "\n";
 
 		# Make a player object from this:
