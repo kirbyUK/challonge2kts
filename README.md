@@ -13,9 +13,13 @@ depends on the following non-core modules:
 * [WWW::Challonge](http://search.cpan.org/dist/WWW-Challonge/lib/WWW/Challonge.pm)
 * [XML::Writer](http://search.cpan.org/dist/XML-Writer/Writer.pm)
 
-Currently, the program must be run in it's directory, as it needs to have the
-path to the `lib` dir in place. I'll get around to implementing a proper
-installation system.
+After that, clone the repo, cd into it and run the following:
+
+```shell
+perl Makefile.PL
+make
+sudo make install
+```
 
 ## Usage
 
@@ -57,7 +61,7 @@ location, penalties, etc.
 
 - [x] Implement tie rounds
 - [ ] Web interface
-- [ ] Proper build / installation
+- [x] Proper build / installation
 
 ## License
 

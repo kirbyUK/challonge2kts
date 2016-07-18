@@ -1,4 +1,54 @@
-#!/usr/bin/perl -w -Ilib
+#!/usr/bin/perl -w
+
+=head1 NAME
+
+challonge2kts - Convert online Challonge! tournament brackets to Konami's KTS
+.Tournament format.
+
+=head1 SYNOPSIS
+
+$ challonge2kts -a [api key] -t [tournament link] [OPTIONS]
+
+=head1 DESCRIPTION
+
+Takes online Challonge! tournament brackets and converts them to the
+.Tournament file format used by Konami's official tournament software KTS.
+This allows them to be uploaded to COSSY, thus allowing official tournament
+stores the option of using Challonge! for their official tournaments.
+
+=head1 OPTIONS
+
+=over 4
+
+=item -a or --api-key
+
+The Challonge API key. Required, but does not have to be the account that that
+owns the tournament.
+
+=item -h or --help
+
+Print a help message and exit.
+
+=item -i or --id
+
+The ID of the tournament. Defaults to X99-000001
+
+=item -o or --output
+
+The output filename. Defaults to the same style as KTS.
+
+=item -t or --tournament
+
+The URL of the Challonge! tournament. Required.
+
+=back
+
+=head1 AUTHOR
+
+Alex Kerr, C<< <kirby at cpan.org> >>
+
+=cut
+
 use strict;
 use Carp;
 use Getopt::Long;
@@ -11,6 +61,7 @@ use KTS::Tournament::TournMatch;
 use KTS::Tournament::TournPlayer;
 use KTS::Tournament::TournPlayer::Player;
 
+sub run;
 sub main;
 sub usage;
 
@@ -342,4 +393,9 @@ sub usage
 			"\t\t\tRequired.\n";
 }
 
-if ($help) { usage; } else { main };
+sub run
+{
+	if ($help) { usage; } else { main };
+}
+
+run unless caller;
